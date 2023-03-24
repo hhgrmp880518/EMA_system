@@ -1,24 +1,41 @@
 # EMA System
 這是由 EMA 團隊開發的數學詳解影音動畫生成系統。
 
-## 環境和函式庫安裝
-### 最低需求
-> Python 3.7 或更高
+## 環境安裝
+### VScode
+> [下載 VScode 1.76](https://code.visualstudio.com/Download) 或更高版本
 
-* 安裝 Manim 相關
+### Python
+> [下載 Python 3.7](https://www.python.org/downloads) 或更高版本
 
-1. [下載 FFmpeg](https://www.wikihow.com/Install-FFmpeg-on-Windows).
-2. [下載 MiKTeX](https://miktex.org/download).
+### Node.js
+> [下載 Node.js 6.0.0](https://nodejs.org/zh-tw/download) 或更高版本
 
+### FFmpeg
+> [下載 FFmpeg](https://www.wikihow.com/Install-FFmpeg-on-Windows)
+
+### MiKTeX
+> [下載 MiKTeX](https://miktex.org/download)
+
+## 函式庫安裝
+
+### Python
+* Manim
 ```sh
 $ pip install manim #v0.17.2
 $ pip install PyExecJS
 ```
-* 安裝 LINE Bot 相關
+* LINE Bot
 ```sh
 $ pip install requests
 $ pip install flask
 $ pip install line-bot-sdk
+```
+
+### Node.js
+
+```sh
+$ npm install mathsteps
 ```
 
 ## 檔案結構
