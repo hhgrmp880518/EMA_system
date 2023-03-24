@@ -42,9 +42,9 @@ EMA System 對於檔案路徑極為敏感，請遵守以下檔案結構：
 ### _`config.ini`_
 
 存放 LINE Bot 敏感資訊
-> ⚠️請將 `<your access token>`, `<your secret>`, `<your webhook url>` 替換為您個人的資訊
 
 檔案需要添加以下內容：
+> ⚠️請將 `<your access token>`, `<your secret>`, `<your webhook url>` 替換為您個人的資訊
 ```sh
 [line-bot]
 channel_access_token = <your access token> 
