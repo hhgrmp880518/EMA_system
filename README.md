@@ -12,7 +12,7 @@
 > [下載 Node.js 6.0.0](https://nodejs.org/zh-tw/download) 或更高版本
 
 ### FFmpeg
-> [下載 FFmpeg](https://www.wikihow.com/Install-FFmpeg-on-Windows)
+> [下載 FFmpeg](https://www.gyan.dev/ffmpeg/builds)
 
 ### MiKTeX
 > [下載 MiKTeX](https://miktex.org/download)
