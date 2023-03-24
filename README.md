@@ -7,6 +7,9 @@
 
 * 安裝 Manim 相關
 
+1. [下載 FFmpeg](https://www.wikihow.com/Install-FFmpeg-on-Windows).
+2. [下載 MiKTeX](https://miktex.org/download).
+
 ```sh
 $ pip install manim #v0.17.2
 $ pip install PyExecJS
