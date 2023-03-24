@@ -71,7 +71,8 @@ class image(explanatoryTools):
     def construct(self):
         title = list(require_list.values())[0].text
         if len(title) <11:
-            scale = 1 
+            scale = 1
+        else:
             scale = math.sqrt((12/(len(title)+2)))
         self.title(title, font_size=96*scale, bold=True)
         print('good')
