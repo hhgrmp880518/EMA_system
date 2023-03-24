@@ -46,7 +46,6 @@ class animation(explanatoryTools):
                 locate.append([0.5+unit_width*i, 2.5+unit_height*j])
         length = unit_width-1
         question = list(require_list.values())[0].text
-        
         self.ask(question, position=[4, 0.5, 0], font_size=36, bold=True)
         
         for i in range(len(StepsText)):
@@ -58,7 +57,10 @@ class animation(explanatoryTools):
             elif command == 'sub':
                 self.numberLineSub(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
             elif command == 'mul':
-                self.numberLineMul(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
+                if nums[1] < 11:
+                    self.numberLineMul(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
+                else:
+                    1+'1'
             elif command == 'ans':
                 self.ans(nums[0], position=[locate[i][0], locate[i][1], 0.0])
         self.wait(5)
@@ -68,7 +70,10 @@ class animation(explanatoryTools):
 class image(explanatoryTools):
     def construct(self):
         title = list(require_list.values())[0].text
-        self.title(title, font_size=96, bold=True)
+        if len(title) <11:
+            scale = 1 
+            scale = math.sqrt((12/(len(title)+2)))
+        self.title(title, font_size=96*scale, bold=True)
         print('good')
 
 # 將Flask框架導向目前運行程式的位置
@@ -116,7 +121,7 @@ def quick_reply(event):
             # 回覆提醒使用者不要連續要求
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text='不要連續傳送問題!\n等前一個問題影片回覆後再傳送')
+                TextSendMessage(text='前一部影片還沒生成完畢\n稍後再傳新的問題')
             )
         else:
             try:
