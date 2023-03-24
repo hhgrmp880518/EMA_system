@@ -19,7 +19,7 @@ $ pip install line-bot-sdk
 ```
 
 ## 檔案結構
-EMA Ｓystem 對於檔案路徑極為敏感，請遵守以下檔案結構：
+EMA System 對於檔案路徑極為敏感，請遵守以下檔案結構：
 > ⚠️請將 `static` 新增到 `EMA_system` 之下
 >
 > ⚠️請將 `config.ini` 新增到 `EMA_system` 之下
