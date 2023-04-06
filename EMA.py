@@ -36,33 +36,46 @@ def js_from_file(file_name):
 # EMA 動畫產生器
 class animation(explanatoryTools):
     def construct(self):
+        self.layout()
         StepsText = list(require_list.values())[0].StepsText
-        size = list(range(math.ceil(len(StepsText)**0.5)))
-        locate = []
-        unit_height = (config.frame_height-1.5)/len(size)
-        unit_width = config.frame_width/len(size)
-        for i in size:
-            for j in size:
-                locate.append([0.5+unit_width*i, 2.5+unit_height*j])
-        length = unit_width-1
+        print(StepsText)
         question = list(require_list.values())[0].text
-        self.ask(question, position=[4, 0.5, 0], font_size=36, bold=True)
-        
+        self.text(question, (frame_width*0.5, frame_height*0.09, 0), frame_width*0.8, frame_height*0.12, font_size=48, aligned_edge=ORIGIN)
+
         for i in range(len(StepsText)):
             command = StepsText[i][0]
             nums = StepsText[i][1]
+            clear = {True:False, False:True}[i == len(StepsText)-2]
 
             if command == 'add':
-                self.numberLineAdd(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
+                self.text(f'{nums[0]}+{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.numberLineAdd(
+                    nums[0], nums[1], 
+                    position=(frame_width*0.55, frame_height*0.507, 0), 
+                    width=frame_width*0.4, 
+                    max_width=frame_width*0.4, 
+                    max_height=frame_height*0.544, 
+                    aligned_edge=LEFT, 
+                    clear=clear
+                )
+                self.text(f'{nums[0]}+{nums[1]}={nums[0]+nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+
             elif command == 'sub':
-                self.numberLineSub(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
+                self.text(f'{nums[0]}-{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.numberLineSub(
+                    nums[0], nums[1], 
+                    position=(frame_width*0.55, frame_height*0.507, 0), 
+                    width=frame_width*0.4, 
+                    max_width=frame_width*0.4, 
+                    max_height=frame_height*0.544, 
+                    aligned_edge=LEFT, 
+                    clear=clear
+                )
+                self.text(f'{nums[0]}-{nums[1]}={nums[0]-nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
             elif command == 'mul':
-                if nums[1] < 11:
-                    self.numberLineMul(nums[0], nums[1], position=[locate[i][0], locate[i][1], 0.0], length=length)
-                else:
-                    1+'1'
+                1+'1'
             elif command == 'ans':
-                self.ans(nums[0], position=[locate[i][0], locate[i][1], 0.0])
+                self.text(f'答案是：{nums[0]}', (frame_width*0.55, frame_height*0.847, 0), frame_width*0.4, frame_height*0.136, font_size=24, aligned_edge=LEFT)
         self.wait(5)
         print('good')
 
@@ -70,11 +83,7 @@ class animation(explanatoryTools):
 class image(explanatoryTools):
     def construct(self):
         title = list(require_list.values())[0].text
-        if len(title) <11:
-            scale = 1
-        else:
-            scale = math.sqrt((12/(len(title)+2)))
-        self.title(title, font_size=96*scale, bold=True)
+        self.text(title, (frame_width*0.5, frame_height*0.5, 0), frame_width*0.8, font_size=96, aligned_edge=ORIGIN, type='image')
         print('good')
 
 # 將Flask框架導向目前運行程式的位置
@@ -129,7 +138,7 @@ def quick_reply(event):
                 mathsteps = execjs.compile(js_from_file('./mathsteps.js'))
                 text = unicodedata.normalize('NFKC', event.message.text)
                 StepsText = mathsteps.call('steps', text)
-                text = text.replace('*','×').replace('-','−').replace(' ','')+' = ?'
+                text = stringReplace(text)+' = ?'
                 require_list[event.source.user_id] = media_data(text, time.time(), StepsText)
 
                 # 回覆使用者正在產生影片
@@ -205,6 +214,7 @@ if __name__ == '__main__':
                 # 清除已完成的要求
                 require_list.pop(user_id)
                 print('{}user_id:{}, text:{}'.format(hintcolors.Clear, user_id, text))
+
             except:
                 headers = {'Authorization':'Bearer {}'.format(line_bot_config.get('line-bot', 'channel_access_token')),
                         'Content-Type':'application/json'}
