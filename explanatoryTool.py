@@ -357,7 +357,7 @@ class explanatoryTools(Scene):
             self.remove(body)
             self.wait(1)
 
-    def numberLineMul(self, *args, position, length, speed=1, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
+    '''def numberLineMul(self, *args, position, length, speed=1, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
         nums = list(args).copy()
         line_groups = []
         label_groups = []
@@ -396,8 +396,53 @@ class explanatoryTools(Scene):
             for i in range(len(line_groups)):
                 for j in range(len(line_groups[i])):
                     self.remove(line_groups[i][j], label_groups[i][j])
-            self.remove(sum_brace, sum_label)
+            self.remove(sum_brace, sum_label)'''
+    def numberLineMul(self, *args, position, width, max_width=frame_width, max_height=frame_height, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
+        weight = {True:BOLD, False:NORMAL}[bold]
+        slant = {True:ITALIC, False:NORMAL}[slant]
+    
+        line_groups = VGroup()
+        
 
+        nums = list(args).copy()
+
+        for i in range(len(nums)-1):
+            nums[i+1] = nums[i]*nums[i+1]
+        
+        pre_width = 0
+        for i in range(len(nums)-1):
+            num = nums[i]
+            color = random_color_set()
+            line_group = VGroup()
+            
+            for j in range(args[i+1]):
+                label = Text(text=f'{num}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
+                print(pre_width, label.width)
+                length = adaptiveLength(width*num/nums[-1], min_width=max(pre_width, label.width))
+                line = NumberLine(x_range=(0, num, num), color=color, stroke_width=4, length=length)
+                line_group.add(VGroup(line, label).arrange(UP, buff=0.2)).arrange(RIGHT, buff=0)
+            pre_width =  line_group.width
+            remain_length = nums[-1]-nums[i+1]
+            
+            if remain_length != 0:
+                line = NumberLine(x_range=(0, remain_length, remain_length), color=color, stroke_width=4, length=width*(remain_length)/nums[-1]).set_opacity(0)
+                line_group.add(line).arrange(RIGHT, buff=0)
+            line_groups.add(line_group).arrange(DOWN, buff=0.2)
+
+        sum_brace = Brace(line_groups, DOWN)
+        sum_label = Text(text=f'{nums[-1]}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
+        sum_group = VGroup(sum_brace, sum_label).arrange(DOWN, buff=0.2)
+        
+        body = VGroup(line_groups, sum_group).arrange(DOWN, buff=0.2)
+        body = adaptiveSize(body, max_width, max_height)
+        body = adaptiveLocation(body, position=position, aligned_edge=aligned_edge, vertical_mir=True)
+
+        self.play(Write(body), run_time=(len(sum_group)+len(line_groups))/speed)
+        self.wait(1)
+        
+        if clear:
+            self.remove(body)
+            self.wait(1)
     def layout(self, display:bool=True) -> None:
         title_margin = Rectangle(height=frame_height*0.15, width=frame_width).move_to((0, frame_height*0.425, 0))
         title_content = Rectangle(height=frame_height*0.12, width=frame_width*0.8).move_to((0, frame_height*0.41, 0))

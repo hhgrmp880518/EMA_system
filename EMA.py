@@ -73,7 +73,20 @@ class animation(explanatoryTools):
                 )
                 self.text(f'{nums[0]}-{nums[1]}={nums[0]-nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
             elif command == 'mul':
-                1+'1'
+                if nums[1] <= 10:
+                    self.text(f'{nums[0]}*{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                    self.numberLineMul(
+                        nums[0], nums[1],
+                        position=(frame_width*0.55, frame_height*0.507, 0), 
+                        width=frame_width*0.4, 
+                        max_width=frame_width*0.4, 
+                        max_height=frame_height*0.544, 
+                        aligned_edge=LEFT,
+                        clear=clear
+                    )
+                    self.text(f'{nums[0]}*{nums[1]}={nums[0]-nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                else:
+                    raise ValueError('Only can multiplicate when multiplicand no bigger than 10')
             elif command == 'ans':
                 self.text(f'答案是：{nums[0]}', (frame_width*0.55, frame_height*0.847, 0), frame_width*0.4, frame_height*0.136, font_size=24, aligned_edge=LEFT)
         self.wait(5)
