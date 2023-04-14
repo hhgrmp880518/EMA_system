@@ -4,6 +4,7 @@ import requests, json
 import os, csv
 import threading, time
 import unicodedata
+import shutil
 from explanatoryTool import*
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -209,6 +210,7 @@ def EMA_generator(user_id):
         # 呼叫 animation() 來產生 EMA 動畫
         animation1.render()  # 執行動畫渲染
 
+
 if __name__ == '__main__':
     # 將 LINE Bot 的應用放入執行緒獨立運作
     line_bot = threading.Thread(target=app.run)
@@ -224,6 +226,15 @@ if __name__ == '__main__':
             try:
                 # 製作 EMA 封面和動畫
                 EMA_generator(user_id)
+
+                # 移除 Tex 資料夾
+                if os.path.exists('./media/Tex'):
+                    shutil.rmtree('./media/Tex')
+
+                # 移除 texts 資料夾
+                if os.path.exists('./media/texts'):
+                    shutil.rmtree('./media/texts')
+
 
                 # 傳送設定
                 headers = {'Authorization':'Bearer {}'.format(line_bot_config.get('line-bot', 'channel_access_token')),
