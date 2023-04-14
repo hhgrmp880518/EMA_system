@@ -22,7 +22,7 @@
 ### Python
 * Manim
 ```sh
-$ pip install manim #v0.17.2
+$ pip install manim #v0.17.3
 $ pip install PyExecJS
 ```
 * LINE Bot
