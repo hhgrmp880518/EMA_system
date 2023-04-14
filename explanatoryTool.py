@@ -6,8 +6,22 @@ import numpy as np
 from math import*
 # constant
 
-frame_width: float = config.frame_width
-frame_height: float = config.frame_height
+FRAME_WIDTH: float = config.frame_width
+FRAME_HEIGHT: float = config.frame_height
+
+# constant for Title-Formula-Animation (TFA) layout type
+TFA_TITLE: np.ndarray = np.array((FRAME_WIDTH*0.5, FRAME_HEIGHT*0.09, 0))
+TFA_TITLE_WIDTH: float = FRAME_WIDTH*0.8
+TFA_TITLE_HEIGHT: float = FRAME_HEIGHT*0.12
+TFA_FORMULA: list[np.ndarray] = [np.array((FRAME_WIDTH*0.05, FRAME_HEIGHT*(0.2775+0.085*x), 0)) for x in range(8)]
+TFA_FORMULA_WIDTH: float = FRAME_WIDTH*0.4
+TFA_FORMULA_HEIGHT: float = FRAME_HEIGHT*0.085
+TFA_ANIMATION: np.ndarray = np.array((FRAME_WIDTH*0.55, FRAME_HEIGHT*0.507, 0))
+TFA_ANIMATION_WIDTH: float = FRAME_WIDTH*0.4
+TFA_ANIMATION_HEIGHT: float = FRAME_HEIGHT*0.544
+TFA_ANSWER: np.ndarray = np.array((FRAME_WIDTH*0.55, FRAME_HEIGHT*0.847, 0))
+TFA_ANSWER_WIDTH: float = FRAME_WIDTH*0.4
+TFA_ANSWER_HEIGHT: float = FRAME_HEIGHT*0.136
 
 # basic fuction
 
@@ -37,8 +51,8 @@ def fill(*args, max_len=0, fil='', rev=False):
 
 def adaptiveSize(
     mobject:Mobject, 
-    max_width:float=frame_width, 
-    max_height:float=frame_height, 
+    max_width:float=FRAME_WIDTH, 
+    max_height:float=FRAME_HEIGHT, 
     min_width:float=0, 
     min_height:float=0
 ) -> Mobject:
@@ -65,9 +79,9 @@ def adaptiveSize(
     
     return mobject
 
-def adaptiveLength(
-    length:float|int, 
-    max_width:float=frame_width, 
+def adaptiveWidth(
+    width:float|int, 
+    max_width:float=FRAME_WIDTH, 
     min_width:float=0
 ) -> float|int:
         
@@ -76,16 +90,16 @@ def adaptiveLength(
     elif min_width < 0:
         raise ValueError('min_width should be 0 or positive')
     else:
-        if length > max_width:
-            length = max_width
-        if length < min_width:
-            length = min_width
+        if width > max_width:
+            width = max_width
+        if width < min_width:
+            width = min_width
     
-    return length
+    return width
 
 def adaptiveLocation(
     mobject:Mobject,
-    origin:np.ndarray=np.array((-frame_width/2, frame_height/2, 0.0)),
+    origin:np.ndarray=np.array((-FRAME_WIDTH/2, FRAME_HEIGHT/2, 0.0)),
     position:np.ndarray=ORIGIN,
     aligned_edge:np.ndarray=ORIGIN,
     vertical_mir:bool=False,
@@ -142,8 +156,8 @@ class explanatoryTools(Scene):
             )
 
         # Position and Size Adjustment
-        scale_x = (frame_width-2)/table.width
-        scale_y = (frame_height-5)/table.height
+        scale_x = (FRAME_WIDTH-2)/table.width
+        scale_y = (FRAME_HEIGHT-5)/table.height
         table = table.scale(min(scale_x, scale_y)).to_corner(DOWN, buff=1.6)
 
         # Style settings
@@ -183,8 +197,8 @@ class explanatoryTools(Scene):
             )
 
         # Position and Size Adjustment
-        scale_x = (frame_width-2)/table.width
-        scale_y = (frame_height-5)/table.height
+        scale_x = (FRAME_WIDTH-2)/table.width
+        scale_y = (FRAME_HEIGHT-5)/table.height
         table = table.scale(min(scale_x, scale_y)).to_corner(DOWN, buff=1.6)
 
         # Style settings
@@ -274,7 +288,7 @@ class explanatoryTools(Scene):
             self.play(Uncreate(attention[i]))
         self.wait(1)
     
-    def text(self, text, position, max_width=frame_width, max_height=frame_height, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, type='video', **kwargs):
+    def text(self, text, position, max_width=FRAME_WIDTH, max_height=FRAME_HEIGHT, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, type='video', **kwargs):
         text = stringReplace(text)
         text = Text(text=f'{text}', color=font_color, font_size=font_size, font=font, weight=(NORMAL, BOLD)[bold], slant=(NORMAL, ITALIC)[slant])
         text = adaptiveSize(text, max_width, max_height)
@@ -292,7 +306,51 @@ class explanatoryTools(Scene):
             self.remove(text)
             self.pause()
 
-    def numberLineAdd(self, *args, position, width, max_width=frame_width, max_height=frame_height, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
+    def singleNumberLine(
+        self, 
+        num, 
+        width,
+        max_width=FRAME_WIDTH,
+        max_height=FRAME_HEIGHT,
+        font="Noto Sans TC Medium", 
+        font_color=WHITE, 
+        font_size=24, 
+        bold=False, 
+        slant=False, 
+        **kwargs
+    ) -> VGroup:
+        
+        weight = {True:BOLD, False:NORMAL}[bold]
+        slant = {True:ITALIC, False:NORMAL}[slant]
+        
+        label = Text(text=f'{num}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
+        length = adaptiveWidth(width=width, min_width=label.width*1.5)
+        line = NumberLine(x_range=(0, num, num), color=random_color_set(), stroke_width=4, length=length)
+        
+        line_group = VGroup(label, line).arrange(DOWN, buff=0.2)
+        line_group = adaptiveSize(line_group, max_width, max_height)
+
+        return line_group
+
+    def numberLineAdd(
+        self, 
+        *args:int,
+        position:np.ndarray,
+        width:float|int,
+        max_width:float|int=FRAME_WIDTH,
+        max_height:float|int=FRAME_HEIGHT,
+        speed:float|int=1,
+        display:bool=True,
+        aligned_edge:np.ndarray=UL,
+        clear:bool=False,
+        font:str="Noto Sans TC Medium",
+        font_color:str=WHITE,
+        font_size:float|int=24,
+        bold:bool=False,
+        slant:bool=False,
+        **kwargs
+    ) -> VGroup:
+
         weight = {True:BOLD, False:NORMAL}[bold]
         slant = {True:ITALIC, False:NORMAL}[slant]
 
@@ -300,7 +358,7 @@ class explanatoryTools(Scene):
         
         for num in args:
             label = Text(text=f'{Decimal(str(num))}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
-            length = adaptiveLength(width*num/sum(args), min_width=label.width)
+            length = adaptiveWidth(width*num/sum(args), min_width=label.width)
             line = NumberLine(x_range=(0, num, num), color=random_color_set(), stroke_width=4, length=length)
             line_group.add(VGroup(line, label).arrange(UP, buff=0.2)).arrange(RIGHT, buff=0)
 
@@ -308,18 +366,39 @@ class explanatoryTools(Scene):
         sum_label = Text(text=f'{sum(args)}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
         sum_group = VGroup(sum_brace, sum_label).arrange(DOWN, buff=0.2)
         
-        body = VGroup(line_group, sum_group).arrange(DOWN, buff=0.2)
+        body = VGroup(line_group, sum_group).arrange(DOWN, buff=0.2, center=False, aligned_edge=LEFT)
         body = adaptiveSize(body, max_width, max_height)
         body = adaptiveLocation(body, position=position, aligned_edge=aligned_edge, vertical_mir=True)
         
-        self.play(Write(body), run_time=(len(sum_group)+len(line_group))/speed)
-        self.wait(1)
-
-        if clear:
-            self.remove(body)
+        if display:
+            self.play(Write(body), run_time=(len(sum_group)+len(line_group))/speed)
             self.wait(1)
 
-    def numberLineSub(self, *args, position, width, max_width=frame_width, max_height=frame_height, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
+            if clear:
+                self.remove(body)
+                self.wait(1)
+        
+        return body
+
+    def numberLineSub(
+        self, 
+        *args:int,
+        position:np.ndarray,
+        width:float|int,
+        max_width:float|int=FRAME_WIDTH,
+        max_height:float|int=FRAME_HEIGHT,
+        speed:float|int=1,
+        display:bool=True,
+        aligned_edge:np.ndarray=UL,
+        clear:bool=False,
+        font:str="Noto Sans TC Medium",
+        font_color:str=WHITE,
+        font_size:float|int=24,
+        bold:bool=False,
+        slant:bool=False,
+        **kwargs
+    ) -> VGroup:
+
         weight = {True:BOLD, False:NORMAL}[bold]
         slant = {True:ITALIC, False:NORMAL}[slant]
         
@@ -327,12 +406,12 @@ class explanatoryTools(Scene):
 
         for num in args[1:]:
             label = Text(text=f'{Decimal(str(num))}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
-            length = adaptiveLength(width*num/args[0], min_width=label.width)
+            length = adaptiveWidth(width*num/args[0], min_width=label.width)
             line = NumberLine(x_range=(0, num, num), color=random_color_set(), stroke_width=4, length=length)
             line_group.add(VGroup(line, label).arrange(DOWN, buff=0.2)).arrange(RIGHT, buff=0)
         
         diff_label = Text(text=f'{Decimal(str(args[0]))-Decimal(str(sum(args[1:])))}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
-        length = adaptiveLength(width-width*sum(args[1:])/args[0], min_width=label.width)
+        length = adaptiveWidth(width-width*sum(args[1:])/args[0], min_width=label.width)
         diff_line = DashedLine((0, 0, 0), (length, 0, 0), color=WHITE)
         diff_brace = Brace(diff_line, DOWN)
         
@@ -346,70 +425,51 @@ class explanatoryTools(Scene):
         minuend_label = Text(text=f'{Decimal(str(args[0]))}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
         minuend_group = VGroup(minuend_line, minuend_label).arrange(UP, buff=0.2)
 
-        body = VGroup(minuend_group, line_group).arrange(DOWN, buff=0.2)
+        body = VGroup(minuend_group, line_group).arrange(DOWN, buff=0.2, center=False, aligned_edge=LEFT)
         body = adaptiveSize(body, max_width, max_height)  
         body = adaptiveLocation(body, position=position, aligned_edge=aligned_edge, vertical_mir=True)
         
-        self.play(Write(body), run_time=(len(minuend_group)+len(line_group))/speed)
-        self.wait(1)
-        
-        if clear:
-            self.remove(body)
+        if display:
+            self.play(Write(body), run_time=(len(minuend_group)+len(line_group))/speed)
             self.wait(1)
 
-    '''def numberLineMul(self, *args, position, length, speed=1, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
-        nums = list(args).copy()
-        line_groups = []
-        label_groups = []
-
-        for i in range(len(nums)-1):
-            nums[i+1] = nums[i]*nums[i+1]
-
-        for i in range(len(nums)-1):
-            num = nums[i]
-            color=random_color_set()
-            line_groups.append([])
-            label_groups.append([])
-            
-            for j in range(args[i+1]):
-                line_groups[i].append(NumberLine(x_range=[0, num, num], color=color, stroke_width=4, length=length*num/nums[-1]))
-                label_groups[i].append(Text(text=f'{num}', color=font_color, font_size=font_size, font=font, weight=(NORMAL, BOLD)[bold], slant=(NORMAL, ITALIC)[slant]))
-
-        for i in range(len(line_groups)):
-            for j in range(len(line_groups[i])):
-                if j == 0:
-                    line_groups[i][j].move_to((position[0]-frame_width/2, frame_height/2-position[1]-0.6*i, 0), aligned_edge=UL)
-                    label_groups[i][j].next_to(line_groups[i][j], UP*0.2)
-                    self.play(Create(line_groups[i][j]), Write(label_groups[i][j]), run_time=1/speed)
-                else:
-                    line_groups[i][j].move_to(line_groups[i][j-1].get_right(), aligned_edge=LEFT)
-                    label_groups[i][j].next_to(line_groups[i][j], UP*0.2)
-                    self.play(Create(line_groups[i][j]), Write(label_groups[i][j]), run_time=1/speed)
+            if clear:
+                self.remove(body)
+                self.wait(1)
         
-        sum_line = NumberLine(length=length).move_to((line_groups[i][0].get_left()), aligned_edge=LEFT)
-        sum_brace = Brace(sum_line, DOWN)
-        sum_label = Text(text=str(nums[-1]), color=font_color, font_size=font_size, font=font, weight=(NORMAL, BOLD)[bold], slant=(NORMAL, ITALIC)[slant]).next_to(sum_brace, DOWN)
-        self.play(Write(sum_brace), Write(sum_label), run_time=1/speed)
+        return body
 
-        if clear:
-            self.pause(1)
-            for i in range(len(line_groups)):
-                for j in range(len(line_groups[i])):
-                    self.remove(line_groups[i][j], label_groups[i][j])
-            self.remove(sum_brace, sum_label)'''
-    def numberLineMul(self, *args, position, width, max_width=frame_width, max_height=frame_height, speed=1, aligned_edge=UL, clear=False, font="Noto Sans TC Medium", font_color=WHITE, font_size=24, bold=False, slant=False, **kwargs):
+    def numberLineMul(
+        self, 
+        *args:int,
+        position:np.ndarray,
+        width:float|int,
+        max_width:float|int=FRAME_WIDTH,
+        max_height:float|int=FRAME_HEIGHT,
+        speed:float|int=1,
+        display:bool=True,
+        aligned_edge:np.ndarray=UL,
+        clear:bool=False,
+        font:str="Noto Sans TC Medium",
+        font_color:str=WHITE,
+        font_size:float|int=24,
+        bold:bool=False,
+        slant:bool=False,
+        **kwargs
+    ) -> VGroup:
+        
         weight = {True:BOLD, False:NORMAL}[bold]
         slant = {True:ITALIC, False:NORMAL}[slant]
     
         line_groups = VGroup()
         
-
         nums = list(args).copy()
 
         for i in range(len(nums)-1):
             nums[i+1] = nums[i]*nums[i+1]
         
-        pre_width = 0
+        pre_line_width = 0
+
         for i in range(len(nums)-1):
             num = nums[i]
             color = random_color_set()
@@ -417,51 +477,52 @@ class explanatoryTools(Scene):
             
             for j in range(args[i+1]):
                 label = Text(text=f'{num}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
-                print(pre_width, label.width)
-                length = adaptiveLength(width*num/nums[-1], min_width=max(pre_width, label.width))
+                length = adaptiveWidth(width*num/nums[-1], min_width=max(pre_line_width, label.width*1.5))
                 line = NumberLine(x_range=(0, num, num), color=color, stroke_width=4, length=length)
                 line_group.add(VGroup(line, label).arrange(UP, buff=0.2)).arrange(RIGHT, buff=0)
-            pre_width =  line_group.width
-            remain_length = nums[-1]-nums[i+1]
             
-            if remain_length != 0:
-                line = NumberLine(x_range=(0, remain_length, remain_length), color=color, stroke_width=4, length=width*(remain_length)/nums[-1]).set_opacity(0)
-                line_group.add(line).arrange(RIGHT, buff=0)
-            line_groups.add(line_group).arrange(DOWN, buff=0.2)
+            pre_line_width =  line_group.width
 
-        sum_brace = Brace(line_groups, DOWN)
-        sum_label = Text(text=f'{nums[-1]}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
-        sum_group = VGroup(sum_brace, sum_label).arrange(DOWN, buff=0.2)
+            line_groups.add(line_group).arrange(DOWN, buff=0.2, center=False, aligned_edge=LEFT)
+
+        product_brace = Brace(line_groups, DOWN)
+        product_label = Text(text=f'{nums[-1]}', color=font_color, font_size=font_size, font=font, weight=weight, slant=slant)
+        product_group = VGroup(product_brace, product_label).arrange(DOWN, buff=0.2)
         
-        body = VGroup(line_groups, sum_group).arrange(DOWN, buff=0.2)
+        body = VGroup(line_groups, product_group).arrange(DOWN, buff=0.2, center=False, aligned_edge=LEFT)
         body = adaptiveSize(body, max_width, max_height)
         body = adaptiveLocation(body, position=position, aligned_edge=aligned_edge, vertical_mir=True)
 
-        self.play(Write(body), run_time=(len(sum_group)+len(line_groups))/speed)
-        self.wait(1)
-        
-        if clear:
-            self.remove(body)
+        if display:
+            self.play(Write(body), run_time=(len(product_group)+len(line_groups))/speed)
             self.wait(1)
+        
+            if clear:
+                self.remove(body)
+                self.wait(1)
+            
+        return body
+
     def layout(self, display:bool=True) -> None:
-        title_margin = Rectangle(height=frame_height*0.15, width=frame_width).move_to((0, frame_height*0.425, 0))
-        title_content = Rectangle(height=frame_height*0.12, width=frame_width*0.8).move_to((0, frame_height*0.41, 0))
+
+        title_margin = Rectangle(height=FRAME_HEIGHT*0.15, width=FRAME_WIDTH).move_to((0, FRAME_HEIGHT*0.425, 0))
+        title_content = Rectangle(height=FRAME_HEIGHT*0.12, width=FRAME_WIDTH*0.8).move_to((0, FRAME_HEIGHT*0.41, 0))
         title = Group(title_margin, title_content)
 
-        formula_margin = Rectangle(height=frame_height*0.85, width=frame_width*0.5)
-        formulaz_content = Rectangle(height=frame_height*0.68, width=frame_width*0.4, grid_xstep=frame_height*0.68, grid_ystep=frame_height*0.085)
-        formula = Group(formula_margin, formulaz_content).move_to((-frame_width*0.25, -frame_height*0.075, 0))
+        formula_margin = Rectangle(height=FRAME_HEIGHT*0.85, width=FRAME_WIDTH*0.5)
+        formulaz_content = Rectangle(height=FRAME_HEIGHT*0.68, width=FRAME_WIDTH*0.4, grid_xstep=FRAME_HEIGHT*0.68, grid_ystep=FRAME_HEIGHT*0.085)
+        formula = Group(formula_margin, formulaz_content).move_to((-FRAME_WIDTH*0.25, -FRAME_HEIGHT*0.075, 0))
         
-        animation_margin = Rectangle(height=frame_height*0.85, width=frame_width*0.5)
-        animation_content = Rectangle(height=frame_height*0.544, width=frame_width*0.4)
-        text_content = Rectangle(height=frame_height*0.136, width=frame_width*0.4)
+        animation_margin = Rectangle(height=FRAME_HEIGHT*0.85, width=FRAME_WIDTH*0.5)
+        animation_content = Rectangle(height=FRAME_HEIGHT*0.544, width=FRAME_WIDTH*0.4)
+        text_content = Rectangle(height=FRAME_HEIGHT*0.136, width=FRAME_WIDTH*0.4)
         animation_inner = Group(animation_content, text_content).arrange(DOWN, buff=0)
-        animation = Group(animation_margin, animation_inner).move_to((frame_width*0.25, -frame_height*0.075, 0))
+        animation = Group(animation_margin, animation_inner).move_to((FRAME_WIDTH*0.25, -FRAME_HEIGHT*0.075, 0))
         
         body = Group(title_margin, title_content, formula, animation)
         
-        uh = frame_height/2
-        uw = frame_width/2
+        uh = FRAME_HEIGHT/2
+        uw = FRAME_WIDTH/2
         polist = [(uw,uh,0),
                   (uw,0,0),
                   (uw,-uh,0),

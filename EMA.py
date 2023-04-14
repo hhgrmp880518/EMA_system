@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 import execjs
-import math
 import requests, json
+import os, csv
 import threading, time
-import os
 import unicodedata
 from explanatoryTool import*
 from flask import Flask, request, abort
@@ -11,7 +10,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from configparser import ConfigParser
-
+from datetime import datetime as dtime
 
 require_list = {}
 
@@ -20,7 +19,7 @@ class media_data():
         self.text = text
         self.StepsText = StepsText
         self.post_time = post_time
-        finish = False
+        self.finish = finish
 
 class hintcolors:
     Success = '\033[1;38;5;81m[Success] \033[0m'
@@ -40,7 +39,7 @@ class animation(explanatoryTools):
         StepsText = list(require_list.values())[0].StepsText
         print(StepsText)
         question = list(require_list.values())[0].text
-        self.text(question, (frame_width*0.5, frame_height*0.09, 0), frame_width*0.8, frame_height*0.12, font_size=48, aligned_edge=ORIGIN)
+        self.text(question, TFA_TITLE, TFA_TITLE_WIDTH, TFA_TITLE_HEIGHT, font_size=48, aligned_edge=ORIGIN)
 
         for i in range(len(StepsText)):
             command = StepsText[i][0]
@@ -48,47 +47,47 @@ class animation(explanatoryTools):
             clear = {True:False, False:True}[i == len(StepsText)-2]
 
             if command == 'add':
-                self.text(f'{nums[0]}+{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.text(f'{nums[0]}+{nums[1]}=?', TFA_FORMULA[2*i], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
                 self.numberLineAdd(
                     nums[0], nums[1], 
-                    position=(frame_width*0.55, frame_height*0.507, 0), 
-                    width=frame_width*0.4, 
-                    max_width=frame_width*0.4, 
-                    max_height=frame_height*0.544, 
+                    position=TFA_ANIMATION, 
+                    width=TFA_ANIMATION_WIDTH, 
+                    max_width=TFA_ANIMATION_WIDTH, 
+                    max_height=TFA_ANIMATION_HEIGHT, 
                     aligned_edge=LEFT, 
                     clear=clear
                 )
-                self.text(f'{nums[0]}+{nums[1]}={nums[0]+nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.text(f'{nums[0]}+{nums[1]}={nums[0]+nums[1]}', TFA_FORMULA[2*i+1], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
 
             elif command == 'sub':
-                self.text(f'{nums[0]}-{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.text(f'{nums[0]}-{nums[1]}=?', TFA_FORMULA[2*i], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
                 self.numberLineSub(
                     nums[0], nums[1], 
-                    position=(frame_width*0.55, frame_height*0.507, 0), 
-                    width=frame_width*0.4, 
-                    max_width=frame_width*0.4, 
-                    max_height=frame_height*0.544, 
+                    position=TFA_ANIMATION, 
+                    width=TFA_ANIMATION_WIDTH, 
+                    max_width=TFA_ANIMATION_WIDTH, 
+                    max_height=TFA_ANIMATION_HEIGHT, 
                     aligned_edge=LEFT, 
                     clear=clear
                 )
-                self.text(f'{nums[0]}-{nums[1]}={nums[0]-nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                self.text(f'{nums[0]}-{nums[1]}={nums[0]-nums[1]}', TFA_FORMULA[2*i+1], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
             elif command == 'mul':
                 if nums[1] <= 10:
-                    self.text(f'{nums[0]}*{nums[1]}=?', (frame_width*0.05, frame_height*(0.2775+0.085*2*i), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                    self.text(f'{nums[0]}*{nums[1]}=?', TFA_FORMULA[2*i], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
                     self.numberLineMul(
                         nums[0], nums[1],
-                        position=(frame_width*0.55, frame_height*0.507, 0), 
-                        width=frame_width*0.4, 
-                        max_width=frame_width*0.4, 
-                        max_height=frame_height*0.544, 
+                        position=TFA_ANIMATION, 
+                        width=TFA_ANIMATION_WIDTH, 
+                        max_width=TFA_ANIMATION_WIDTH, 
+                        max_height=TFA_ANIMATION_HEIGHT, 
                         aligned_edge=LEFT,
                         clear=clear
                     )
-                    self.text(f'{nums[0]}*{nums[1]}={nums[0]-nums[1]}', (frame_width*0.05, frame_height*(0.2775+0.085*(2*i+1)), 0), frame_width*0.4, frame_height*0.085, font_size=32, aligned_edge=LEFT)
+                    self.text(f'{nums[0]}*{nums[1]}={nums[0]*nums[1]}', TFA_FORMULA[2*i+1], TFA_FORMULA_WIDTH, TFA_FORMULA_HEIGHT, font_size=32, aligned_edge=LEFT)
                 else:
                     raise ValueError('Only can multiplicate when multiplicand no bigger than 10')
             elif command == 'ans':
-                self.text(f'答案是：{nums[0]}', (frame_width*0.55, frame_height*0.847, 0), frame_width*0.4, frame_height*0.136, font_size=24, aligned_edge=LEFT)
+                self.text(f'答案是：{nums[0]}', TFA_ANSWER, TFA_ANSWER_WIDTH, TFA_ANSWER_HEIGHT, font_size=24, aligned_edge=LEFT)
         self.wait(5)
         print('good')
 
@@ -96,8 +95,18 @@ class animation(explanatoryTools):
 class image(explanatoryTools):
     def construct(self):
         title = list(require_list.values())[0].text
-        self.text(title, (frame_width*0.5, frame_height*0.5, 0), frame_width*0.8, font_size=96, aligned_edge=ORIGIN, type='image')
+        self.text(title, (FRAME_WIDTH*0.5, FRAME_HEIGHT*0.5, 0), FRAME_WIDTH*0.8, font_size=96, aligned_edge=ORIGIN, type='image')
         print('good')
+
+# 確認 static 資料夾存在
+if not os.path.exists('./static'):
+    os.mkdir('./static')
+
+# 確認 recording.csv 存在
+if not os.path.exists('./recording.csv'):
+    with open(file='./recording.csv', mode='w', encoding='UTF-8') as initialize:
+        writer = csv.writer(initialize)
+        writer.writerow(['時間', '資料', '狀態', '備註'])
 
 # 將Flask框架導向目前運行程式的位置
 app = Flask(__name__)
@@ -153,7 +162,7 @@ def quick_reply(event):
                 StepsText = mathsteps.call('steps', text)
                 text = stringReplace(text)+' = ?'
                 require_list[event.source.user_id] = media_data(text, time.time(), StepsText)
-
+                
                 # 回覆使用者正在產生影片
                 if len(list(require_list.keys())) < 3:
                     line_bot_api.reply_message(
@@ -170,6 +179,10 @@ def quick_reply(event):
                     event.reply_token,
                     TextSendMessage(text='輸入的資料暫時不支援生成')
                 )
+
+                with open(file='./recording.csv', mode='a', encoding='UTF-8', newline='') as new_recording:
+                    writer = csv.writer(new_recording)
+                    writer.writerow([f'[{dtime.now()}]', text, False, 'MathStepError'])
 
 # 渲染 EMA 封面和動畫
 def EMA_generator(user_id):
@@ -225,8 +238,9 @@ if __name__ == '__main__':
 
                 print('{}user_id:{}, text:{}'.format(hintcolors.Success, user_id, text))
                 # 清除已完成的要求
-                require_list.pop(user_id)
+                pop_data = require_list.pop(user_id)
                 print('{}user_id:{}, text:{}'.format(hintcolors.Clear, user_id, text))
+                pop_data.finish = True
 
             except:
                 headers = {'Authorization':'Bearer {}'.format(line_bot_config.get('line-bot', 'channel_access_token')),
@@ -239,10 +253,13 @@ if __name__ == '__main__':
                                 headers=headers,
                                 data=json.dumps(body).encode('utf-8'))
                 print('{}user_id:{}, text:{}'.format(hintcolors.Failed, user_id, text))
-                require_list.pop(user_id)
+                pop_data = require_list.pop(user_id)
                 print('{}user_id:{}, text:{}'.format(hintcolors.Clear, user_id, text))
 
-            print(require_list)
+            with open(file='./recording.csv', mode='a', encoding='UTF-8', newline='') as new_recording:
+                writer = csv.writer(new_recording)
+                writer.writerow([f'[{dtime.fromtimestamp(pop_data.post_time)}]', pop_data.text, pop_data.finish, ''])
+
         else:
             # 等待 1 秒
             time.sleep(1)
